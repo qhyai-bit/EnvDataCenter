@@ -6,6 +6,8 @@ import com.briup.smart.env.util.JdbcUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Collection;
 
 public class DBStoreImpl implements DBStore{
@@ -15,22 +17,44 @@ public class DBStoreImpl implements DBStore{
     public void saveDB(Collection<Environment> collection) {
         Connection conn = null;
         PreparedStatement pstmt = null;
+        //实际入库条数
+        int saveCount = 0;
         try {
             //1、2.获取数据库连接
             conn = JdbcUtils.getConnection();
             //设置不自动提交
             conn.setAutoCommit(false);
 
-            //3.获取pstmt对象
-            String sql = "insert into e_detail_1(name,srcId,desId,devId,sensorAddress,count,cmd,status,data,gather_date) " + "values(?,?,?,?,?,?,?,?,?,?)";
-            pstmt = conn.prepareStatement(sql);
-
             // 准备计数器
             int count = 0;
-            int saveCount = 0;
+            int currDay = -1;
+            int preDay = -1;
 
-            //4.执行sql语句，插入数据
+            //执行sql语句，插入数据
             for(Environment env : collection) {
+                //获取采集天
+                Timestamp gatherDate = env.getGatherDate();
+                Calendar cal = Calendar.getInstance();
+                cal.setTimeInMillis(gatherDate.getTime());
+                currDay = cal.get(Calendar.DAY_OF_MONTH);
+
+                if (preDay == -1 || currDay != preDay) {
+                    if (preDay != -1){
+                        //执行批处理
+                        pstmt.executeBatch();
+                        //提交事务
+                        conn.commit();
+                        //记录实际入库数据
+                        saveCount += count;
+                        count = 0;
+                        pstmt.close();
+                        System.out.println("提交事务,saveCount: " + saveCount);
+                    }
+                    //3.获取pstmt对象
+                    String sql = "insert into e_detail_" +currDay+ "(name,srcId,desId,devId,sensorAddress,count,cmd,status,data,gather_date) " + "values(?,?,?,?,?,?,?,?,?,?)";
+                    pstmt = conn.prepareStatement(sql);
+                    System.out.println("创建新pstmt: " + sql);
+                }
                 //4.1 设置?值
                 pstmt.setString(1,env.getName());
                 pstmt.setString(2,env.getSrcId());
@@ -49,17 +73,27 @@ public class DBStoreImpl implements DBStore{
 
                 //4.3 每3条 执行一次批处理
                 if(count % 3 == 0) {
+                    //执行批处理
                     pstmt.executeBatch();
+                    //提交事务
                     conn.commit();
+                    //记录实际入库数据
                     saveCount += count;
                     count = 0;
+                    System.out.println("提交事务,saveCount: " + saveCount);
                 }
+                //当前数据处理完成，记录当前天数
+                preDay = currDay;
             }
             //4.4 最后再执行一次批处理
-            pstmt.executeBatch();
-            conn.commit();
-            saveCount += count;
-            System.out.println("实际入库数据: " + saveCount + "条");
+            if (count != 0) {
+                pstmt.executeBatch();
+                //提交事务
+                conn.commit();
+                //记录实际入库数据
+                saveCount += count % 3;
+                System.out.println("实际入库数据: " + saveCount + "条");
+            }
         } catch (Exception e) {
             if(conn != null) {
                 try {
