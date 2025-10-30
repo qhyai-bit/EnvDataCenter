@@ -32,34 +32,38 @@ public class ServerImpl implements Server{
                 Thread th = new Thread(){
                     @Override
                     public void run() {
-                        try {
-                            // 3.准备对象流
-                            ois = new ObjectInputStream(socket.getInputStream());
+                    try {
+                        // 3.准备对象流
+                        ois = new ObjectInputStream(socket.getInputStream());
 
-                            // 4.读取集合对象
-                            Collection<Environment> coll = (Collection<Environment>) ois.readObject();
-                            System.out.println("成功接收到集合对象,内含环境数据个数: " + coll.size());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }finally {
-                            System.out.println("连接客户端" + socket + " 即将关闭...");
-                            // 5.关闭资源
-                            if (ois != null){
-                                try {
-                                    ois.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            if (socket != null){
-                                try {
-                                    socket.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                        // 4.读取集合对象
+                        Collection<Environment> coll = (Collection<Environment>) ois.readObject();
+                        System.out.println("成功接收到集合对象,内含环境数据个数: " + coll.size());
+
+                        //后续 入库代码
+                        DBStore dbStore = new DBStoreImpl();
+                        dbStore.saveDB(coll);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }finally {
+                        System.out.println("连接客户端" + socket + " 即将关闭...");
+                        // 5.关闭资源
+                        if (ois != null){
+                            try {
+                                ois.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
                         }
-                        //未完待续...
+                        if (socket != null){
+                            try {
+                                socket.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                     }
                 };
                 th.start();
