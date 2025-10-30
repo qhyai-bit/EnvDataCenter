@@ -1,5 +1,7 @@
 package com.briup.smart.env.main;
 
+import com.briup.smart.env.client.Client;
+import com.briup.smart.env.client.ClientImpl;
 import com.briup.smart.env.client.Gather;
 import com.briup.smart.env.client.GatherImpl;
 import com.briup.smart.env.entity.Environment;
@@ -14,5 +16,10 @@ public class ClientMain {
         Collection<Environment> envs = gt.gather();
         //输出集合元素个数
         System.out.println("元素数量: " + envs.size());
+
+        //2.发送集合对象 到 服务器
+        Client client = new ClientImpl();
+        client.send(envs);
+        System.out.println("客户端成功关闭!");
     }
 }
