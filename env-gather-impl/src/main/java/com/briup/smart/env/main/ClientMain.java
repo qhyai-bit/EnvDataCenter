@@ -1,9 +1,6 @@
 package com.briup.smart.env.main;
 
-import com.briup.smart.env.client.Client;
-import com.briup.smart.env.client.ClientImpl;
-import com.briup.smart.env.client.Gather;
-import com.briup.smart.env.client.GatherImpl;
+import com.briup.smart.env.client.*;
 import com.briup.smart.env.entity.Environment;
 
 import java.util.Collection;
@@ -12,7 +9,7 @@ import java.util.Collection;
 public class ClientMain {
     public static void main(String[] args) throws Exception {
         //1.实例化采集模块对象，调用采集方法，实现采集功能
-        Gather gt = new GatherImpl();
+        Gather gt = new GatherBackupImpl();
         Collection<Environment> envs = gt.gather();
         //输出集合元素个数
         System.out.println("元素数量: " + envs.size());
