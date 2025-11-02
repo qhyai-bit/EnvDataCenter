@@ -1,9 +1,7 @@
 package com.briup.smart.env.server;
 
 import com.briup.smart.env.entity.Environment;
-import com.briup.smart.env.util.Backup;
-import com.briup.smart.env.util.BackupImpl;
-import com.briup.smart.env.util.JdbcUtils;
+import com.briup.smart.env.util.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,10 +13,11 @@ import java.util.List;
 
 //入库(考虑备份)功能实现
 public class DBStoreBackupImpl implements DBStore {
+    private static final Log log = new LogImpl();
     //多表入库
     @Override
     public void saveDB(Collection<Environment> collection) throws Exception {
-        System.out.println("in saveDB, coll.size: " + collection.size());
+        log.info("in saveDB, coll.size: " + collection.size());
         //一、提取备份数据，添加到collection集合头部
         String backupFilePath = "env-gather-impl/src/main/resources/db-backup.txt";
         Backup backup = new BackupImpl();
@@ -28,7 +27,7 @@ public class DBStoreBackupImpl implements DBStore {
             ArrayList<Environment> list = (ArrayList<Environment>) obj;
             list.addAll(collection);
             collection = list;
-            System.out.println("添加备份数据后coll.size: " + collection.size());
+            log.info("添加备份数据后coll.size: " + collection.size());
         }
         //二、常规入库功能实现
         Connection conn = null;
@@ -61,12 +60,12 @@ public class DBStoreBackupImpl implements DBStore {
                         saveCount += count;
                         count = 0;
                         pstmt.close();
-                        System.out.println("提交事务,saveCount: " + saveCount);
+                        log.info("提交事务,saveCount: " + saveCount);
                     }
                     //3.获取pstmt对象
                     String sql = "insert into e_detail_"+currDay+" (name,srcId,desId,devId,sensorAddress,count,cmd,status,data,gather_date) values(?,?,?,?,?,?,?,?,?,?)";
                     pstmt = conn.prepareStatement(sql);
-                    System.out.println("创建新pstmt: " + sql);
+                    log.info("创建新pstmt: " + sql);
                 }
                 //4.1 设置?值
                 pstmt.setString(1, env.getName());
@@ -96,25 +95,27 @@ public class DBStoreBackupImpl implements DBStore {
                     saveCount += count;
                     //重置计数器为0
                     count = 0;
-                    System.out.println("提交事务,saveCount: " + saveCount);
+                    log.info("提交事务,saveCount: " + saveCount);
                 }
                 //当前数据处理完成，记录当前天数
                 preDay = currDay;
             }
             //4.4 出循环再次执行批处理
-            pstmt.executeBatch();
-            //提交事务
-            conn.commit();
-            //记录实际入库数据
-            saveCount += count;
-            System.out.println("成功入库数据条数：" + saveCount);
+            if (pstmt != null) {
+                pstmt.executeBatch();
+                //提交事务
+                conn.commit();
+                //记录实际入库数据
+                saveCount += count;
+                log.info("成功入库数据条数: " + saveCount);
+            }
         } catch (Exception e) {
             //1.回滚事务
             if(conn != null) {
                 conn.rollback();
-                System.out.println("事务回滚成功!");
+                log.info("回滚事务成功!");
             }
-            System.out.println("成功入库数据条数: " + saveCount);
+            log.info("成功入库数据条数: " + saveCount);
             //2.获取尚未入库的数据添加到集合中
             ArrayList<Environment> list = (ArrayList<Environment>) collection;
             // size: 22 saveCount: 18 subList(18,22);[18,22)
@@ -124,8 +125,8 @@ public class DBStoreBackupImpl implements DBStore {
             //3.将尚未入库的数据备份到本地文件
             //Backup backup = new BackupImpl();
             backup.store(backupFilePath,backUpList, Backup.STORE_OVERRIDE);
-            System.out.println("成功备份数据条数: " + backUpList.size());
-            e.printStackTrace();
+            log.info("成功备份数据条数: " + backUpList.size());
+            log.error("发生异常: " + e.getMessage());
         } finally {
             JdbcUtils.close(pstmt,conn);
         }

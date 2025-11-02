@@ -2,6 +2,8 @@ package com.briup.smart.env.server;
 
 import com.briup.smart.env.entity.Environment;
 import com.briup.smart.env.util.JdbcUtils;
+import com.briup.smart.env.util.Log;
+import com.briup.smart.env.util.LogImpl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +13,7 @@ import java.util.Calendar;
 import java.util.Collection;
 
 public class DBStoreImpl implements DBStore{
+    private static final Log log = new LogImpl();
     //将coll集合中全部环境数据，保存到数据库中
     //要求使用: pstmt预处理对象+批处理+手动事务管理
     @Override
@@ -48,12 +51,12 @@ public class DBStoreImpl implements DBStore{
                         saveCount += count;
                         count = 0;
                         pstmt.close();
-                        System.out.println("提交事务,saveCount: " + saveCount);
+                        log.info("提交事务,saveCount: " + saveCount);
                     }
                     //3.获取pstmt对象
                     String sql = "insert into e_detail_" +currDay+ "(name,srcId,desId,devId,sensorAddress,count,cmd,status,data,gather_date) " + "values(?,?,?,?,?,?,?,?,?,?)";
                     pstmt = conn.prepareStatement(sql);
-                    System.out.println("创建新pstmt: " + sql);
+                    log.info("创建新pstmt: " + sql);
                 }
                 //4.1 设置?值
                 pstmt.setString(1,env.getName());
@@ -80,7 +83,7 @@ public class DBStoreImpl implements DBStore{
                     //记录实际入库数据
                     saveCount += count;
                     count = 0;
-                    System.out.println("提交事务,saveCount: " + saveCount);
+                    log.info("提交事务,saveCount: " + saveCount);
                 }
                 //当前数据处理完成，记录当前天数
                 preDay = currDay;
@@ -92,18 +95,18 @@ public class DBStoreImpl implements DBStore{
                 conn.commit();
                 //记录实际入库数据
                 saveCount += count % 3;
-                System.out.println("实际入库数据: " + saveCount + "条");
+                log.info("实际入库数据: " + saveCount + "条");
             }
         } catch (Exception e) {
             if(conn != null) {
                 try {
                     conn.rollback();
-                    System.out.println("事务回滚成功!");
+                    log.info("事务回滚成功!");
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    log.error("事务回滚失败!" + ex.getMessage());
                 }
             }
-            e.printStackTrace();
+            log.error("入库失败!" + e.getMessage());
         } finally {
             JdbcUtils.close(pstmt,conn);
         }

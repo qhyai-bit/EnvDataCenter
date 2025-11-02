@@ -10,6 +10,7 @@ import java.util.Properties;
 
 //JDBC工具类
 public class JdbcUtils {
+    private static final Log log = new LogImpl();
 
     //数据源对象
     private static DataSource dataSource;
@@ -21,7 +22,7 @@ public class JdbcUtils {
             properties.load(JdbcUtils.class.getClassLoader().getResourceAsStream("druid.properties"));
             dataSource = DruidDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("创建数据源对象失败");
         }
     }
 
@@ -39,7 +40,7 @@ public class JdbcUtils {
             try {
                 rs.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("关闭资源失败");
             }
         }
 
@@ -47,7 +48,7 @@ public class JdbcUtils {
             try {
                 stmt.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("关闭资源失败");
             }
         }
 
@@ -55,7 +56,7 @@ public class JdbcUtils {
             try {
                 conn.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("关闭资源失败");
             }
         }
     }

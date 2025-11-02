@@ -3,6 +3,8 @@ package com.briup.smart.env.client;
 import com.briup.smart.env.entity.Environment;
 import com.briup.smart.env.util.Backup;
 import com.briup.smart.env.util.BackupImpl;
+import com.briup.smart.env.util.Log;
+import com.briup.smart.env.util.LogImpl;
 
 import java.io.RandomAccessFile;
 import java.sql.Timestamp;
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class GatherBackupImpl implements Gather {
+    private static final Log log = new LogImpl();
     @Override
     public Collection<Environment> gather() throws Exception {
         String gatherFilePath = "env-gather-impl/src/main/resources/data-file-simple";
@@ -18,8 +21,8 @@ public class GatherBackupImpl implements Gather {
         // 1.采集开始前，读取备份文件，获取上次的偏移量
         Backup backup = new BackupImpl();
         Object obj = backup.load(backupFilePath, Backup.LOAD_REMOVE);
-        Long offset = obj == null ? 0L : (Long) obj + 2;//之前解析位置的下一行的位置(换行符占2字节)
-        System.out.println("备份模块: 调整备份文件中偏移量: " + offset);
+        long offset = obj == null ? 0L : (Long) obj + 2;//之前解析位置的下一行的位置(换行符占2字节)
+        log.info("备份模块: 获取备份文件偏移量: " + offset);
 
         //采集开始前，先调整偏移量到适合的位置
         RandomAccessFile raf = new RandomAccessFile(gatherFilePath, "r");
@@ -93,12 +96,12 @@ public class GatherBackupImpl implements Gather {
 
         // 3.采集完成后，备份采集数据偏移量
         offset = raf.getFilePointer();
-        System.out.println("备份模块: 采集完成后，文件末尾偏移量: " + offset);
+        log.info("备份模块: 存储备份文件偏移量: " + offset);
         backup.store(backupFilePath, offset, Backup.STORE_OVERRIDE);
 
         //释放资源
         raf.close();
-        System.out.println("采集模块: 采集数据完成,本次采集数量: " + list.size() + "条");
+        log.info("采集模块: 采集数据完成,本次采集数量: " + list.size() + "条");
 
         return list;
     }

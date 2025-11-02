@@ -1,6 +1,9 @@
 package com.briup.smart.env.client;
 
 import com.briup.smart.env.entity.Environment;
+import com.briup.smart.env.util.Log;
+import com.briup.smart.env.util.LogImpl;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +16,7 @@ import java.util.Collection;
  * 解析数据文件，将数据封装成Environment对象，并添加到集合中，最后返回集合
  */
 public class GatherImpl implements Gather {
+    private static final Log log = new LogImpl();
     /* 采集模块功能实现逐行解析data-file-simple中数据，每行 --> 1或2个 Environment对象将所有对象添加到Collection集合中，最终返回*/
     @Override
     public Collection<Environment> gather(){
@@ -20,7 +24,7 @@ public class GatherImpl implements Gather {
         String filePath = "env-gather-impl\\src\\main\\resources\\data-file-simple";
         ArrayList<Environment> list = new ArrayList<>();
         try (//1.使用BufferedReader逐行读取文件内容
-                BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String str = null;
             //2.逐行读取数据并处理
             while ((str = br.readLine()) != null) {
@@ -30,7 +34,7 @@ public class GatherImpl implements Gather {
                 String[] arr = str.split("[|]");// \\|
                 // 数据验证
                 if (arr.length < 9) {
-                    System.out.println("数据格式不完整: " + str);
+                    log.warn("数据格式不完整: " + str);
                     continue;
                 }
                 //将数据封装到Environment对象中
@@ -84,14 +88,14 @@ public class GatherImpl implements Gather {
                         list.add(environment);
                         break;
                     default:
-                        System.out.println("数据格式错误: " + str);
+                        log.error("数据格式错误: " + str);
                         break;
                 }
             }
         } catch(IOException e) {
-            e.printStackTrace();
+            log.error("数据采集失败");
         }
-        System.out.println("采集模块: 采集数据完成，本次共采集:"+list.size()+"条");
+        log.info("采集模块: 采集数据完成，本次共采集:"+list.size()+"条");
         return list;
     }
     /**

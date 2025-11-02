@@ -3,6 +3,7 @@ package com.briup.smart.env.util;
 import java.io.*;
 
 public class BackupImpl implements Backup{
+    private static final Log log = new LogImpl();
     /**
      * 读取备份文件中存储的对象
      *
@@ -18,11 +19,11 @@ public class BackupImpl implements Backup{
         File file = new File(filePath);
         //判断文件是否存在
         if (!file.exists() || !file.isFile()) {
-            System.out.println("备份模块: 想要读取的备份文件不存在" + filePath);
+            log.warn("备份模块: 想要读取的备份文件不存在" + filePath);
             return null;
         }
         if (file.length() == 0) {
-            System.out.println("备份模块: 备份文件中无数据可读" + filePath);
+            log.warn("备份模块: 备份文件中无数据可读" + filePath);
             return null;
         }
         //读取文件，获取对象
@@ -30,14 +31,14 @@ public class BackupImpl implements Backup{
         try (ObjectInputStream ois =
                      new ObjectInputStream(new FileInputStream(filePath))) {
             object = ois.readObject();
-            System.out.println("备份模块: 成功读取备份文件");
+            log.info("备份模块: 读取备份文件成功");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("备份模块: 读取备份文件失败");
         }
         //根据删除标志 删除文件
         if (del) {
             boolean delete = file.delete();
-            System.out.println("备份模块: 文件" + (delete ? "删除成功" : "删除失败"));
+            log.info("备份模块: 文件" + (delete ? "删除成功" : "删除失败"));
         }
         return object;
     }
@@ -57,9 +58,9 @@ public class BackupImpl implements Backup{
                      new ObjectOutputStream(new
                              FileOutputStream(filePath, append))) {
             oos.writeObject(obj);
-            System.out.println("备份模块: 数据已保存到备份文件中" + filePath);
+            log.info("备份模块: 数据已保存到备份文件中" + filePath);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("备份模块: 数据保存失败");
         }
     }
 }
