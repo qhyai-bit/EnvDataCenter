@@ -37,7 +37,7 @@ public class BackupImpl implements Backup{
         //根据删除标志 删除文件
         if (del) {
             boolean delete = file.delete();
-            System.out.println("备份模块: 文件" + (delete ? "删除成 功" : "删除失败"));
+            System.out.println("备份模块: 文件" + (delete ? "删除成功" : "删除失败"));
         }
         return object;
     }
@@ -51,7 +51,7 @@ public class BackupImpl implements Backup{
     在调用时推荐使用接口中定义的静态常量STORE_APPEND、STORE_OVERRIDE
      */
     @Override
-    public void store(String filePath, Object obj, boolean append) throws Exception {
+    public void store(String filePath, Object obj, boolean append) {
         //将obj对象写入备份文件
         try (ObjectOutputStream oos =
                      new ObjectOutputStream(new

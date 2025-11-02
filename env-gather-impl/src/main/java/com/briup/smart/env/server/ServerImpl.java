@@ -41,7 +41,7 @@ public class ServerImpl implements Server{
                         System.out.println("成功接收到集合对象,内含环境数据个数: " + coll.size());
 
                         //后续 入库代码
-                        DBStore dbStore = new DBStoreImpl();
+                        DBStore dbStore = new DBStoreBackupImpl();
                         dbStore.saveDB(coll);
 
                     } catch (Exception e) {
