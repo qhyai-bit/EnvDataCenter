@@ -10,12 +10,13 @@ import java.net.Socket;
 import java.util.Collection;
 
 public class ClientImpl implements Client{
-    private static final Log log = new LogImpl();
+    private Log log;// = new LogImpl();
+
+    //准备服务器ip和port
+    String serverIP;// = "127.0.0.1";
+    int serverPort;// = 9999;
     @Override
     public void send(Collection<Environment> coll) {
-        //准备服务器ip和port
-        String host = "127.0.0.1";
-        int port = 9999;
         //参数判断
         if (coll == null || coll.isEmpty()) {
             log.warn("客户端网络模块: 输入数据有误");
@@ -26,7 +27,7 @@ public class ClientImpl implements Client{
         ObjectOutputStream oos = null;
         try {
             //1.搭建客户端，连接到服务器
-            socket = new Socket(host,port);
+            socket = new Socket(serverIP,serverPort);
             log.info("客户端网络模块: 连接成功");
 
             //2.获取IO流

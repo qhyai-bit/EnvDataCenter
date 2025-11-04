@@ -11,10 +11,14 @@ import java.net.Socket;
 import java.util.Collection;
 
 public class ServerImpl implements Server{
-    private static final Log log = new LogImpl();
+    private Log log;// = new LogImpl();
     //新增属性：服务器起始状态(默认未关闭)
-    private boolean isStop = false;
-    private int port = 9999;
+    private boolean isStop;// = false;
+    private int port;// = 9999;
+    private int listenPort;// = 8888;
+    public int getListenPort() {
+        return listenPort;
+    }
     private ServerSocket serverSocket;
     Socket socket = null;
     ObjectInputStream ois = null;

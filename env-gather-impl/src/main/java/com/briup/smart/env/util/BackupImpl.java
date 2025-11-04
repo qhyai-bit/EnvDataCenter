@@ -3,7 +3,7 @@ package com.briup.smart.env.util;
 import java.io.*;
 
 public class BackupImpl implements Backup{
-    private static final Log log = new LogImpl();
+    private Log log;// = new LogImpl();
     /**
      * 读取备份文件中存储的对象
      *

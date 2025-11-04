@@ -13,15 +13,16 @@ import java.util.List;
 
 //入库(考虑备份)功能实现
 public class DBStoreBackupImpl implements DBStore {
-    private static final Log log = new LogImpl();
+    private String dbstoreBackupFilePath;// = "env-gather-impl/src/main/resources/db-backup.txt";
+    private Log log;// = new LogImpl();
+    private Backup backup;// = new BackupImpl();
+
     //多表入库
     @Override
     public void saveDB(Collection<Environment> collection) throws Exception {
         log.info("in saveDB, coll.size: " + collection.size());
         //一、提取备份数据，添加到collection集合头部
-        String backupFilePath = "env-gather-impl/src/main/resources/db-backup.txt";
-        Backup backup = new BackupImpl();
-        Object obj = backup.load(backupFilePath, Backup.LOAD_REMOVE);
+        Object obj = backup.load(dbstoreBackupFilePath, Backup.LOAD_REMOVE);
         //如果备份文件存在且包含有效数据，则将其读取出来添加到collection的头部
         if(obj != null) {
             ArrayList<Environment> list = (ArrayList<Environment>) obj;
@@ -124,7 +125,7 @@ public class DBStoreBackupImpl implements DBStore {
             backUpList.addAll(subList);
             //3.将尚未入库的数据备份到本地文件
             //Backup backup = new BackupImpl();
-            backup.store(backupFilePath,backUpList, Backup.STORE_OVERRIDE);
+            backup.store(dbstoreBackupFilePath,backUpList, Backup.STORE_OVERRIDE);
             log.info("成功备份数据条数: " + backUpList.size());
             log.error("发生异常: " + e.getMessage());
         } finally {

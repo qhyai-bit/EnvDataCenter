@@ -12,15 +12,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class GatherBackupImpl implements Gather {
-    private static final Log log = new LogImpl();
+    String gatherFilePath;// = "env-gather-impl/src/main/resources/data-file-simple";
+    String gatherBackupFilePath;// = "env-gather-impl/src/main/resources/gather-backup.txt";
+
+    private Log log;// = new LogImpl();
+    Backup backup;// = new BackupImpl();
     @Override
     public Collection<Environment> gather() throws Exception {
-        String gatherFilePath = "env-gather-impl/src/main/resources/data-file-simple";
-        String backupFilePath = "env-gather-impl/src/main/resources/gather-backup.txt";
-
         // 1.采集开始前，读取备份文件，获取上次的偏移量
-        Backup backup = new BackupImpl();
-        Object obj = backup.load(backupFilePath, Backup.LOAD_REMOVE);
+        Object obj = backup.load(gatherBackupFilePath, Backup.LOAD_REMOVE);
         long offset = obj == null ? 0L : (Long) obj + 2;//之前解析位置的下一行的位置(换行符占2字节)
         log.info("备份模块: 获取备份文件偏移量: " + offset);
 
@@ -97,7 +97,7 @@ public class GatherBackupImpl implements Gather {
         // 3.采集完成后，备份采集数据偏移量
         offset = raf.getFilePointer();
         log.info("备份模块: 存储备份文件偏移量: " + offset);
-        backup.store(backupFilePath, offset, Backup.STORE_OVERRIDE);
+        backup.store(gatherBackupFilePath, offset, Backup.STORE_OVERRIDE);
 
         //释放资源
         raf.close();
