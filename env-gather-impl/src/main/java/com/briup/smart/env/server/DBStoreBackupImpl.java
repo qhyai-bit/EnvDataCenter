@@ -1,21 +1,33 @@
 package com.briup.smart.env.server;
 
+import com.briup.smart.env.Configuration;
 import com.briup.smart.env.entity.Environment;
+import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.support.PropertiesAware;
 import com.briup.smart.env.util.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 //入库(考虑备份)功能实现
-public class DBStoreBackupImpl implements DBStore {
+public class DBStoreBackupImpl implements DBStore, ConfigurationAware, PropertiesAware {
     private String dbstoreBackupFilePath;// = "env-gather-impl/src/main/resources/db-backup.txt";
     private Log log;// = new LogImpl();
     private Backup backup;// = new BackupImpl();
+
+    //模块对象注入
+    @Override
+    public void setConfiguration(Configuration configuration) throws Exception {
+        log = configuration.getLogger();
+        backup = configuration.getBackup();
+    }
+
+    @Override
+    public void init(Properties properties) {
+        dbstoreBackupFilePath = properties.getProperty("dbstoreBackupFilePath");
+    }
 
     //多表入库
     @Override
@@ -83,7 +95,7 @@ public class DBStoreBackupImpl implements DBStore {
                 i++;
                 //模拟异常的产生
                 if(i == 20) {
-                //i = 10 / 0;
+//                    i = 10 / 0;
                 }
                 //4.2 添加到批处理
                 pstmt.addBatch();

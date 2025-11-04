@@ -1,20 +1,36 @@
 package com.briup.smart.env.client;
 
+import com.briup.smart.env.Configuration;
 import com.briup.smart.env.entity.Environment;
+import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.support.PropertiesAware;
 import com.briup.smart.env.util.Log;
-import com.briup.smart.env.util.LogImpl;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.Properties;
 
-public class ClientImpl implements Client{
+public class ClientImpl implements Client, ConfigurationAware, PropertiesAware {
     private Log log;// = new LogImpl();
 
     //准备服务器ip和port
-    String serverIP;// = "127.0.0.1";
-    int serverPort;// = 9999;
+    private String serverIP;// = "127.0.0.1";
+    private int serverPort;// = 9999;
+
+    //模块对象注入
+    @Override
+    public void setConfiguration(Configuration configuration) throws Exception {
+        log = configuration.getLogger();
+    }
+
+    @Override
+    public void init(Properties properties) {
+        serverIP = properties.getProperty("serverIP");
+        serverPort = Integer.parseInt(properties.getProperty("serverPort"));
+    }
+
     @Override
     public void send(Collection<Environment> coll) {
         //参数判断

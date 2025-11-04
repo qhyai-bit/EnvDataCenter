@@ -1,22 +1,38 @@
 package com.briup.smart.env.client;
 
+import com.briup.smart.env.Configuration;
 import com.briup.smart.env.entity.Environment;
+import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.support.PropertiesAware;
 import com.briup.smart.env.util.Backup;
-import com.briup.smart.env.util.BackupImpl;
 import com.briup.smart.env.util.Log;
-import com.briup.smart.env.util.LogImpl;
 
 import java.io.RandomAccessFile;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Properties;
 
-public class GatherBackupImpl implements Gather {
-    String gatherFilePath;// = "env-gather-impl/src/main/resources/data-file-simple";
-    String gatherBackupFilePath;// = "env-gather-impl/src/main/resources/gather-backup.txt";
+public class GatherBackupImpl implements Gather, ConfigurationAware, PropertiesAware {
+    private String gatherFilePath;// = "env-gather-impl/src/main/resources/data-file-simple";
+    private String gatherBackupFilePath;// = "env-gather-impl/src/main/resources/gather-backup.txt";
 
     private Log log;// = new LogImpl();
-    Backup backup;// = new BackupImpl();
+    private Backup backup;// = new BackupImpl();
+
+    //模块对象注入
+    @Override
+    public void setConfiguration(Configuration configuration) throws Exception {
+        log = configuration.getLogger();
+        backup = configuration.getBackup();
+    }
+
+    @Override
+    public void init(Properties properties) {
+        gatherFilePath = properties.getProperty("gatherFilePath");
+        gatherBackupFilePath = properties.getProperty("gatherBackupFilePath");
+    }
+
     @Override
     public Collection<Environment> gather() throws Exception {
         // 1.采集开始前，读取备份文件，获取上次的偏移量

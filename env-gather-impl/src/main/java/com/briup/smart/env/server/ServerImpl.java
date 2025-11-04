@@ -1,17 +1,24 @@
 package com.briup.smart.env.server;
 
+import com.briup.smart.env.Configuration;
 import com.briup.smart.env.entity.Environment;
+import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.support.PropertiesAware;
 import com.briup.smart.env.util.Log;
-import com.briup.smart.env.util.LogImpl;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.Properties;
 
-public class ServerImpl implements Server{
+//如果当前模块需要注入 其他模块对象，则需要实现ConfigurationAware接口
+//如果当前模块需要注入 配置属性信息，则需要实现PropertiesAware接口
+public class ServerImpl implements Server, ConfigurationAware, PropertiesAware {
     private Log log;// = new LogImpl();
+    private DBStore dbStore;// = new DBStoreBackupImpl();
+
     //新增属性：服务器起始状态(默认未关闭)
     private boolean isStop;// = false;
     private int port;// = 9999;
@@ -22,6 +29,23 @@ public class ServerImpl implements Server{
     private ServerSocket serverSocket;
     Socket socket = null;
     ObjectInputStream ois = null;
+
+    //模块对象注入
+    @Override
+    public void setConfiguration(Configuration configuration) throws Exception {
+        log = configuration.getLogger();
+        dbStore = configuration.getDbStore();
+    }
+
+    @Override
+    public void init(Properties properties) {
+        String isStopStr = properties.getProperty("isStop");
+        isStop = Boolean.parseBoolean(isStopStr);
+
+        port = Integer.parseInt(properties.getProperty("port"));
+        listenPort = Integer.parseInt(properties.getProperty("listenPort"));
+    }
+
     //多线程服务器
     @Override
     public void receive() {
@@ -48,7 +72,6 @@ public class ServerImpl implements Server{
                         log.info("成功接收集合对象,内含环境数据个数: " + coll.size());
 
                         //后续 入库代码
-                        DBStore dbStore = new DBStoreBackupImpl();
                         dbStore.saveDB(coll);
 
                     } catch (Exception e) {

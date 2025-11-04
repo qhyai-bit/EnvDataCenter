@@ -1,9 +1,19 @@
 package com.briup.smart.env.util;
 
+import com.briup.smart.env.Configuration;
+import com.briup.smart.env.support.ConfigurationAware;
+
 import java.io.*;
 
-public class BackupImpl implements Backup{
+public class BackupImpl implements Backup, ConfigurationAware {
     private Log log;// = new LogImpl();
+
+    //模块对象注入
+    @Override
+    public void setConfiguration(Configuration configuration) throws Exception {
+        log = configuration.getLogger();
+    }
+
     /**
      * 读取备份文件中存储的对象
      *

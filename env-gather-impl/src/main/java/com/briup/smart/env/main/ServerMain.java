@@ -1,19 +1,19 @@
 package com.briup.smart.env.main;
 
-import com.briup.smart.env.server.Server;
+import com.briup.smart.env.ConfigurationImpl;
 import com.briup.smart.env.server.ServerImpl;
 import com.briup.smart.env.util.Log;
-import com.briup.smart.env.util.LogImpl;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerMain {
-    private static final Log log = new LogImpl();
     public static void main(String[] args) throws Exception {
+        ConfigurationImpl conf = ConfigurationImpl.getInstance();
+        Log log = conf.getLogger();
         //1.启动服务器，接收客户端发送过来数据并入库
-        Server server = new ServerImpl();
+        ServerImpl server = (ServerImpl) conf.getServer();
 
         //2.启动监控服务器【8888】,接受客户端的连接，
         //一旦有客户端连接上来，则关闭9999服务器
@@ -23,8 +23,9 @@ public class ServerMain {
                 ServerSocket  serverSocket = null;
                 Socket socket = null;
                 try {
-                    serverSocket = new ServerSocket(8888);
-                    log.info("监控服务器启动成功,port: " + 8888 + ",等待客户端连接...");
+                    int listenPort = server.getListenPort();
+                    serverSocket = new ServerSocket(listenPort);
+                    log.info("监控服务器启动成功,port: " + listenPort + ",等待客户端连接...");
                     socket = serverSocket.accept();
                     log.info("客户端成功连接, socket: " + socket);
                     server.shutdown();
